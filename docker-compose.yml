@@ -1,0 +1,25 @@
+version: "3.8"
+
+services:
+  hermes-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "50051:50051"
+    environment:
+      - HERMES_PORT=50051
+      - HERMES_LOG_LEVEL=info
+    healthcheck:
+      test: ["CMD", "grpc_health_probe", "-addr=:50051"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  # Example subscriber service
+  hermes-subscriber:
+    image: hermes-client
+    command: ["-mode=sub", "-topic=agents", "-addr=hermes-server:50051"]
+    depends_on:
+      - hermes-server
